@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # misc secrets
 src/configs/jwt-secret.ts
+
+#node package lock
+package-lock.json
