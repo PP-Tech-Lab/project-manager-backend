@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Request, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Request, Post, UseGuards, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './guards/auth.guard';
 
@@ -8,8 +8,13 @@ export class AuthController {
 
     @HttpCode(HttpStatus.OK)
     @Post('login')
-    login(@Body() input: { username: string; password: string}) {
-        return this.authService.authenticate(input);
+    login(@Body() input: { username: string; password: string}, // [TODO]: ```Getting errors using @Res({passthrough: true}) res: Response```
+    ) {
+        if (!input.username || !input.password) {
+            return {message: "Bad Request" ,statusCode: 400};
+        }
+        else {
+            return this.authService.authenticate(input);}
     }
 
     @UseGuards(AuthGuard)
