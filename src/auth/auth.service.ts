@@ -1,10 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-
-type AuthInput = { username: string; password: string }
-type SignInData = { userId: number; username: string }
-type AuthResult = { accessToken: string; userId: number; username: string };
+import { AuthInput, AuthResult, SignInData } from './auth.type';
 
 @Injectable()
 export class AuthService {
