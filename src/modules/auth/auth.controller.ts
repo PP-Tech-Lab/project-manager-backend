@@ -9,11 +9,13 @@ export class AuthController {
 
     @HttpCode(HttpStatus.OK)
     @Post('login')
-    login(@Body() input: { username: string; password: string}, // [TODO]: ```Getting errors using @Res({passthrough: true}) res: Response```
+    login(
+        @Body() input: { username: string; password: string}, // [TODO]: ```Getting errors using @Res({passthrough: true}) res: Response```
+        @Res() res
     ) {
         if (!input.username || !input.password) {
             this.logger.warn('[login] Bad request! Missing fields!')
-            return {message: "Bad Request" ,statusCode: 400};
+            return res.status(HttpStatus.BAD_REQUEST).json({message: `Bad Request. Missing ${!input.username ? 'username' : 'password'}`})
         }
         else {
             this.logger.debug(`[login] User "${input.username}" attempting to login`)
