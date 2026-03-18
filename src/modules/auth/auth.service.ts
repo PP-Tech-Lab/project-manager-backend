@@ -6,8 +6,10 @@ import { AuthInput, AuthResult, SignInData } from './types/auth.type';
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
-    constructor(private usersService: UsersService,
-                private jwtService: JwtService
+    
+    constructor(
+        private usersService: UsersService,
+        private jwtService: JwtService
     ) {}
 
     async authenticate(input: AuthInput): Promise<AuthResult> {

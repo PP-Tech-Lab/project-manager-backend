@@ -5,12 +5,14 @@ import { AuthGuard } from '../../guards/auth.guard';
 @Controller('auth')
 export class AuthController {
     private readonly logger = new Logger(AuthController.name);
-    constructor(private authService: AuthService) {}
+    constructor(
+        private authService: AuthService
+    ) {}
 
     @HttpCode(HttpStatus.OK)
     @Post('login')
-    login(
-        @Body() input: { username: string; password: string}, // [TODO]: ```Getting errors using @Res({passthrough: true}) res: Response```
+    async login(
+        @Body() input: { username: string; password: string},
         @Res() res
     ) {
         if (!input.username || !input.password) {
@@ -19,7 +21,8 @@ export class AuthController {
         }
         else {
             this.logger.debug(`[login] User "${input.username}" attempting to login`)
-            return this.authService.authenticate(input);}
+            const data = await this.authService.authenticate(input);
+            return res.status(HttpStatus.OK).json(data)}
     }
 
     @UseGuards(AuthGuard)
