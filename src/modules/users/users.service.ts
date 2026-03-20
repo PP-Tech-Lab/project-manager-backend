@@ -1,4 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from './entities/user.entity';
+import { Repository } from 'typeorm';
 
 export type User = {
     userId: number;
@@ -7,22 +10,26 @@ export type User = {
 }
 
 // [TODO] This is a mockup, implement a real ORM connection to DB
-const users: User[] = [
-    {
-        userId: 1,
-        username: 'Alice',
-        password: 'topsecret', //TODO Use a hash
-    },
-    {
-        userId: 2,
-        username: 'Bob',
-        password: '123abc'
-    }
-];
+// const users: User[] = [
+//     {
+//         userId: 1,
+//         username: 'Alice',
+//         password: 'topsecret', //TODO Use a hash
+//     },
+//     {
+//         userId: 2,
+//         username: 'Bob',
+//         password: '123abc'
+//     }
+// ];
 
 @Injectable()
 export class UsersService {
-    async findUserByName(username: string): Promise<User | undefined> {
-        return users.find((user) => user.username === username);
+    constructor(
+        @InjectRepository(UserEntity)
+        private usersRepository: Repository<UserEntity>
+    ) {}
+    async findUserByName(username: string): Promise<User | null> {
+        return this.usersRepository.findOne({where: {username: 'Alice'}});
     }
 }
