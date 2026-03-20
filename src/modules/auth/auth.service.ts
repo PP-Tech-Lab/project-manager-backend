@@ -26,14 +26,13 @@ export class AuthService {
 
     async validateUser(input: AuthInput): Promise<SignInData | null> {
         const user = await this.usersService.findUserByName(input.username)
-        this.logger.verbose(`[validateUser] ${input.username} ${user}`)
-        // if (user && user.password === input.password) { // [TODO]: return a message if user exists but incorrect password???
-        //     this.logger.verbose(`[validateUser] User ${input.username} found!`)
-        //     return {
-        //         userId: user.userId,
-        //         username: user.username
-        //     };
-        // }
+        if (user && user.password === input.password) { // [TODO]: return a message if user exists but incorrect password???
+            this.logger.verbose(`[validateUser] User ${input.username} found!`)
+            return {
+                userId: user.userId,
+                username: user.username
+            };
+        }
 
         this.logger.verbose(`[validateUser] User ${input.username} not found`)
         return null;

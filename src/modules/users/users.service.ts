@@ -30,6 +30,6 @@ export class UsersService {
         private usersRepository: Repository<UserEntity>
     ) {}
     async findUserByName(username: string): Promise<User | null> {
-        return this.usersRepository.findOne({where: {username: 'Alice'}});
+        return this.usersRepository.findOneBy({username});
     }
 }
