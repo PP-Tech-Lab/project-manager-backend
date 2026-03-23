@@ -4,10 +4,12 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TestModule } from './modules/test/test.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validateEnv } from './functions/environment-validator';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './modules/users/entities/user.entity';
+
+const configService = new ConfigService()
 
 @Module({
   imports: [UsersModule, AuthModule,
@@ -19,11 +21,11 @@ import { UserEntity } from './modules/users/entities/user.entity';
     TestModule,
     TypeOrmModule.forRoot({ // [TODO]: create .env.database file
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'mysecretpassword',
-      database: 'my_database',
+      host: configService.get<string>('DB_HOST'),
+      port: configService.get<number>('DB_PORT'),
+      username: configService.get<string>('DB_USERNAME'),
+      password: configService.get<string>('DB_PASSWORD'),
+      database: configService.get<string>('DB_USER_DATABASE'),
       entities: [UserEntity],
       synchronize: true,
       retryAttempts: 5,
