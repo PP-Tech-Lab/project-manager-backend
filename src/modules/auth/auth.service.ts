@@ -48,4 +48,14 @@ export class AuthService {
         this.logger.verbose(`[signIn] Sign in Success! Sending Access token to user ${user.username}!`)
         return { accessToken, username: user.username, userId: user.userId}
     }
+
+    async emailExists(email: string): Promise<boolean> {
+        
+        if (await this.usersService.findEmail(email)){
+            this.logger.verbose(`[emailExists] WARNING Email exists!`)
+            return true
+        }
+
+        return false;
+    }
 }

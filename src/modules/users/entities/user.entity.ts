@@ -10,4 +10,10 @@ export class UserEntity {
 
     @Column()
     password!: string;
+
+    @Column()
+    email!: string
+
+    @Column()
+    isActive!: boolean
 }
