@@ -1,14 +1,12 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Request, Post, UseGuards, Res, Injectable, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
-import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
     private readonly logger = new Logger(AuthController.name);
     constructor(
-        private authService: AuthService,
-        private userService: UsersService
+        private authService: AuthService
     ) {}
 
     @HttpCode(HttpStatus.OK)
@@ -47,8 +45,9 @@ export class AuthController {
             return res.status(HttpStatus.CONFLICT).json({registrationError: 'email-taken'})
         } else {
             this.logger.debug('[register] this means its working!')
-            await this.userService.registerNewUser(input.username, input.email, input.password) // [TODO]: Proper error handling
-            const data = await this.authService.authenticate({credential: input.username, password: input.password});
+
+            const data = await this.authService.signUp(input)
+            
             return res.status(HttpStatus.CREATED).json({message: 'New User successfuly created!', ...data})
         }
     }
