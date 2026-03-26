@@ -25,16 +25,16 @@ export class AuthService {
     };
 
     async validateUser(input: AuthInput): Promise<SignInData | null> {
-        const user = await this.usersService.findUserByName(input.username)
+        const user = await this.usersService.findUser(input.credential)
         if (user && user.password === input.password) { // [TODO]: return a message if user exists but incorrect password???
-            this.logger.verbose(`[validateUser] User ${input.username} found!`)
+            this.logger.verbose(`[validateUser] User ${input.credential} found!`)
             return {
                 userId: user.userId,
                 username: user.username
             };
         }
 
-        this.logger.verbose(`[validateUser] User ${input.username} not found`)
+        this.logger.verbose(`[validateUser] User ${input.credential} not found`)
         return null;
     }
 

@@ -14,15 +14,15 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @Post('login')
     async login(
-        @Body() input: { username: string; password: string},
+        @Body() input: { credential: string; password: string},
         @Res() res
     ) {
-        if (!input.username || !input.password) {
+        if (!input.credential || !input.password) {
             this.logger.warn('[login] Bad request! Missing fields!')
-            return res.status(HttpStatus.BAD_REQUEST).json({message: `Bad Request. Missing ${!input.username ? 'username' : 'password'}`})
+            return res.status(HttpStatus.BAD_REQUEST).json({message: `Bad Request. Missing ${!input.credential? 'username' : 'password'}`})
         }
         else {
-            this.logger.debug(`[login] User "${input.username}" attempting to login`)
+            this.logger.debug(`[login] User "${input.credential}" attempting to login`)
             const data = await this.authService.authenticate(input);
             return res.status(HttpStatus.OK).json(data)}
     }
@@ -44,11 +44,11 @@ export class AuthController {
             return res.status(HttpStatus.BAD_REQUEST).json({message: `Bad Request. Missing fields`})
         } else if (await this.authService.emailExists(input.email)) {
             this.logger.warn('[register] Conflict! Email taken!')
-            return res.status(HttpStatus.CONFLICT).json({message: 'Email taken'})
+            return res.status(HttpStatus.CONFLICT).json({registrationError: 'email-taken'})
         } else {
             this.logger.debug('[register] this means its working!')
             await this.userService.registerNewUser(input.username, input.email, input.password) // [TODO]: Proper error handling
-            const data = await this.authService.authenticate({username: input.username, password: input.password});
+            const data = await this.authService.authenticate({credential: input.username, password: input.password});
             return res.status(HttpStatus.CREATED).json({message: 'New User successfuly created!', ...data})
         }
     }
