@@ -23,7 +23,8 @@ export class UsersService {
             username: username,
             email: email,
             password: password,
-            isActive: false
+            isActive: true,
+            verified: false
         })
         this.logger.verbose(`[registerNewUser] Result: ${result}`)
         return true

@@ -16,4 +16,7 @@ export class UserEntity {
 
     @Column()
     isActive!: boolean
+
+    @Column()
+    verified!: boolean
 }

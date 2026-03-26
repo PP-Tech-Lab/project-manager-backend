@@ -3,5 +3,6 @@ userId integer PRIMARY KEY,
 username VARCHAR(20),
 password VARCHAR(20),
 email VARCHAR(35),
-isActivated BOOLEAN
+isActivated BOOLEAN,
+verified BOOLEAN
 );
