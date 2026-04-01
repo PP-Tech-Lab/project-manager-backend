@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validateEnv } from './functions/environment-validator';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './modules/users/entities/user.entity';
+import { EmailVerificationTokens } from './orm-services/email-verification-tokens/email-verification-tokens.entity';
 
 const configService = new ConfigService()
 
@@ -26,7 +27,7 @@ const configService = new ConfigService()
       username: configService.get<string>('DB_USERNAME'),
       password: configService.get<string>('DB_PASSWORD'),
       database: configService.get<string>('DB_USER_DATABASE'),
-      entities: [UserEntity],
+      entities: [UserEntity, EmailVerificationTokens],
       synchronize: true,
       retryAttempts: 5,
       retryDelay: 1000

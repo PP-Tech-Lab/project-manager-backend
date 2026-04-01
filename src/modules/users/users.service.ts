@@ -3,8 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
 
+// [TODO] Move to users.types.ts
 export type User = {
-    userId: number;
+    userId: string;
     username: string;
     password: string;
     email: string;
@@ -18,7 +19,7 @@ export class UsersService {
         private usersRepository: Repository<UserEntity>
     ) {}
 
-    async registerNewUser(username: string, email: string, password: string): Promise<boolean> {
+    async registerNewUser(username: string, email: string, password: string): Promise<boolean> { // [TODO] Proper error handleing
         var result = await this.usersRepository.insert({
             username: username,
             email: email,
@@ -33,7 +34,7 @@ export class UsersService {
     async findUserByName(username: string): Promise<User | null> {
         return this.usersRepository.findOneBy({username});
     }
-    
+
     async findEmail(email: string): Promise<User | null> {
         return this.usersRepository.findOneBy({email});
     }
