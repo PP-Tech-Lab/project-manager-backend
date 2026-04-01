@@ -19,7 +19,7 @@ const configService = new ConfigService()
       validate: validateEnv
     }),
     TestModule,
-    TypeOrmModule.forRoot({ // [TODO]: create .env.database file
+    TypeOrmModule.forRoot({
       type: 'postgres',
       host: configService.get<string>('DB_HOST'),
       port: configService.get<number>('DB_PORT'),

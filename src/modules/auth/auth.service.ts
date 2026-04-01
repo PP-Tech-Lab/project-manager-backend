@@ -11,7 +11,6 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-        
     ) {}
 
     async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -29,7 +28,7 @@ export class AuthService {
     async validateUser(input: AuthInput): Promise<SignInData | null> {
         const user = await this.usersService.findUser(input.credential)
         
-        if (user) { // [TODO]: return a message if user exists but incorrect password???
+        if (user) {
             const isMatch = await bcrypt.compare(input.password, user.password)
             if (isMatch) {
                 this.logger.verbose(`[validateUser] User ${input.credential} found!`)

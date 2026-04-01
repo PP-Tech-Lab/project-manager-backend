@@ -33,6 +33,7 @@ export class UsersService {
     async findUserByName(username: string): Promise<User | null> {
         return this.usersRepository.findOneBy({username});
     }
+    
     async findEmail(email: string): Promise<User | null> {
         return this.usersRepository.findOneBy({email});
     }

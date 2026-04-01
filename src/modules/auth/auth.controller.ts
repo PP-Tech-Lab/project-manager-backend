@@ -53,8 +53,10 @@ export class AuthController {
     }
 
     @Get('check-username')
-    async checkUsername (@Query('username') username: string,
-                         @Res() res) { 
+    async checkUsername (
+        @Query('username') username: string,
+        @Res() res
+    ) { 
         const result = await this.userService.findUser(username)
         return res.status(HttpStatus.OK).json({usernameExists: `${result ? true : false}`})
     }
