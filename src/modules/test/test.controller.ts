@@ -15,9 +15,10 @@ export class TestController {
     //console.log('Petition received');
     //return this.testService.test();
     this.email.saveVerificationToken({
-      userId: '128b6cf2-e581-4e8a-9bd9-c35a0584bb38', 
-      tokenHash: '1231231231231',
-      expiresAt: Date.now()});
-    
+      userId: '44cd3dd9-59f0-4bf1-a00d-613b3b4ac79b',
+      tokenHash: '3A2SD123S1D5ASD321',
+      expiresAt: new Date()
+    });
+
   }
 }
