@@ -1,26 +1,28 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Request, Post, UseGuards, Res, Injectable, Logger } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Request, Post, UseGuards, Res, Injectable, Logger, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
     private readonly logger = new Logger(AuthController.name);
     constructor(
-        private authService: AuthService
+        private authService: AuthService,
+        private userService: UsersService
     ) {}
 
     @HttpCode(HttpStatus.OK)
     @Post('login')
     async login(
-        @Body() input: { username: string; password: string},
+        @Body() input: { credential: string; password: string},
         @Res() res
     ) {
-        if (!input.username || !input.password) {
+        if (!input.credential || !input.password) {
             this.logger.warn('[login] Bad request! Missing fields!')
-            return res.status(HttpStatus.BAD_REQUEST).json({message: `Bad Request. Missing ${!input.username ? 'username' : 'password'}`})
+            return res.status(HttpStatus.BAD_REQUEST).json({message: `Bad Request. Missing ${!input.credential? 'username' : 'password'}`})
         }
         else {
-            this.logger.debug(`[login] User "${input.username}" attempting to login`)
+            this.logger.debug(`[login] User "${input.credential}" attempting to login`)
             const data = await this.authService.authenticate(input);
             return res.status(HttpStatus.OK).json(data)}
     }
@@ -30,5 +32,32 @@ export class AuthController {
     getUserInfo(@Request() request) {
         this.logger.verbose('[getUserInfo] [GET] Returning request')
         return request.user
+    }
+
+    @Post('register')
+    async register(
+        @Body() input: {username: string; password: string; email: string;},
+        @Res() res
+    ) {
+        if (!input.username || !input.password || !input.email) {
+            this.logger.warn('[register] Bad request! Missing fields!')
+            return res.status(HttpStatus.BAD_REQUEST).json({message: `Bad Request. Missing fields`})
+        } else if (await this.authService.emailExists(input.email)) {
+            this.logger.warn('[register] Conflict! Email taken!')
+            return res.status(HttpStatus.CONFLICT).json({registrationError: 'email-taken'})
+        } else {
+            this.logger.debug('[register] this means its working!')
+            const data = await this.authService.signUp(input)
+            return res.status(HttpStatus.CREATED).json({message: 'New User successfuly created!', ...data})
+        }
+    }
+
+    @Get('check-username')
+    async checkUsername (
+        @Query('username') username: string,
+        @Res() res
+    ) { 
+        const result = await this.userService.findUser(username)
+        return res.status(HttpStatus.OK).json({usernameExists: `${result ? true : false}`})
     }
 }

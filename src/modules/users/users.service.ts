@@ -1,28 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from './entities/user.entity';
+import { Repository } from 'typeorm';
 
 export type User = {
     userId: number;
     username: string;
     password: string;
+    email: string;
 }
-
-// [TODO] This is a mockup, implement a real ORM connection to DB
-const users: User[] = [
-    {
-        userId: 1,
-        username: 'Alice',
-        password: 'topsecret', //TODO Use a hash
-    },
-    {
-        userId: 2,
-        username: 'Bob',
-        password: '123abc'
-    }
-];
 
 @Injectable()
 export class UsersService {
-    async findUserByName(username: string): Promise<User | undefined> {
-        return users.find((user) => user.username === username);
+    private readonly logger = new Logger(UsersService.name);
+    constructor(
+        @InjectRepository(UserEntity)
+        private usersRepository: Repository<UserEntity>
+    ) {}
+
+    async registerNewUser(username: string, email: string, password: string): Promise<boolean> {
+        var result = await this.usersRepository.insert({
+            username: username,
+            email: email,
+            password: password,
+            isActive: true,
+            verified: false
+        })
+        this.logger.verbose(`[registerNewUser] Result: ${result}`)
+        return true
+    }
+
+    async findUserByName(username: string): Promise<User | null> {
+        return this.usersRepository.findOneBy({username});
+    }
+    
+    async findEmail(email: string): Promise<User | null> {
+        return this.usersRepository.findOneBy({email});
+    }
+
+    async findUser(credentials: string): Promise<User | null> {
+        return this.usersRepository.findOne({
+            where: [
+                {username: credentials},
+                {email: credentials}
+                ]
+        })
     }
 }

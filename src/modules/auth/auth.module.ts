@@ -4,6 +4,7 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt'
 import { UsersModule } from '../users/users.module';
 import { ConfigService, ConfigModule } from '@nestjs/config';
+import { StringValue } from 'ms';
 
 @Module({
   providers: [AuthService, ConfigService],
@@ -16,7 +17,7 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
       useFactory: (configService: ConfigService) => ({
         global: true,
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: configService.get<StringValue>('JWT_EXPIRATION') },
       }),
     }),
   ],
