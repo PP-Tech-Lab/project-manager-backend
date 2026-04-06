@@ -20,7 +20,7 @@ export class UsersService {
     ) {}
 
     async registerNewUser(username: string, email: string, password: string): Promise<boolean> { // [TODO] Proper error handleing
-        var result = await this.usersRepository.insert({
+        const result = await this.usersRepository.insert({
             username: username,
             email: email,
             password: password,
@@ -32,15 +32,15 @@ export class UsersService {
     }
 
     async findUserByName(username: string): Promise<User | null> {
-        return this.usersRepository.findOneBy({username});
+        return await this.usersRepository.findOneBy({username});
     }
 
     async findEmail(email: string): Promise<User | null> {
-        return this.usersRepository.findOneBy({email});
+        return await this.usersRepository.findOneBy({email});
     }
 
     async findUser(credentials: string): Promise<User | null> {
-        return this.usersRepository.findOne({
+        return await this.usersRepository.findOne({
             where: [
                 {username: credentials},
                 {email: credentials}

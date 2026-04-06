@@ -34,6 +34,7 @@ export class EmailNotificationService {
     this.configService.get;
 
     // Call to ORM 
+    // check if token exists
 
     const opciones = {
       from: this.configService.get<string>('GMAIL_EMAIL'),

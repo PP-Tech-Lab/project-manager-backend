@@ -8,4 +8,4 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   providers: [EmailNotificationService],
   exports: [EmailNotificationService]
 })
-export class EmailVerificationModule {}
+export class EmailNotificationModule {}
