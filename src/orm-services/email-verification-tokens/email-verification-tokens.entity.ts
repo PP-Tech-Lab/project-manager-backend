@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToOne, JoinColumn } from 'typeorm';
-import { UserEntity } from '../../modules/users/entities/user.entity';
+import { UserEntity } from '../users/user.entity';
 
 @Entity()
 export class EmailVerificationTokens {

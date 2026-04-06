@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Request, Post, UseGuards, Res, Injectable, Logger, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../../orm-services/users/users.service';
 
 @Controller('auth')
 export class AuthController {

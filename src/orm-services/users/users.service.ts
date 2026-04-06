@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
 
 // [TODO] Move to users.types.ts

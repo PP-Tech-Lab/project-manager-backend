@@ -6,7 +6,7 @@ import { EmailVerificationTokens } from './email-verification-tokens.entity'
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SaveVerificationTokenProps } from './email-verification-tokens.types';
-import { UserEntity } from '../../modules/users/entities/user.entity';
+import { UserEntity } from '../users/user.entity';
 
 export type Token = {
   user: UserEntity,

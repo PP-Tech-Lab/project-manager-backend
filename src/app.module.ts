@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
+import { UsersModule } from './orm-services/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TestModule } from './modules/test/test.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validateEnv } from './functions/environment-validator';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from './modules/users/entities/user.entity';
+import { UserEntity } from './orm-services/users/user.entity';
 import { EmailVerificationTokens } from './orm-services/email-verification-tokens/email-verification-tokens.entity';
 
 const configService = new ConfigService()
