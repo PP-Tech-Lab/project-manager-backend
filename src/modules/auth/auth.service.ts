@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../orm-services/users/users.service';
 import { AuthInput, AuthResult, SignInData, SignUpData } from './types/auth.type';
 import * as bcrypt from 'bcrypt';
+import { EmailNotificationModule } from '../../services/email-notification.module';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
+        private emailNotification: EmailNotificationModule
     ) {}
 
     async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -58,6 +60,7 @@ export class AuthService {
         const hashedPassword = await bcrypt.hash(newUser.password, this.saltOrRounds)
         await this.usersService.registerNewUser(newUser.username, newUser.email, hashedPassword) // [TODO]: Proper error handling
         // Call to email-verification service (newUser.username and email)
+        //await this.emailNotification.sendVerificationEmail()
         return await this.authenticate({credential: newUser.username, password: newUser.password});
     }
 

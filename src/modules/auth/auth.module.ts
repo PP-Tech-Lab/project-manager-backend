@@ -5,12 +5,13 @@ import { JwtModule } from '@nestjs/jwt'
 import { UsersModule } from '../../orm-services/users/users.module';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { StringValue } from 'ms';
+import { EmailNotificationModule } from '../../services/email-notification.module';
 
 @Module({
   providers: [AuthService, ConfigService],
   controllers: [AuthController],
-    imports: [
-    UsersModule,
+  imports: [
+    UsersModule, EmailNotificationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

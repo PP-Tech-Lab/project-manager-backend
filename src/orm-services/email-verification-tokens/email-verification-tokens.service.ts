@@ -1,17 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, Hash, randomBytes } from 'crypto';
 import { EmailVerificationTokens } from './email-verification-tokens.entity'
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SaveVerificationTokenProps } from './email-verification-tokens.types';
-import { UserEntity } from '../users/user.entity';
-
-export type Token = {
-  user: UserEntity,
-  tokenHash: string
-}
+import { SaveVerificationTokenProps, Token } from './email-verification-tokens.types';
 
 @Injectable()
 export class EmailVerificationTokenService {

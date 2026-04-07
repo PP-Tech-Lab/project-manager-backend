@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, Hash, randomBytes } from 'crypto';
 import { EmailVerificationTokens } from '../orm-services/email-verification-tokens/email-verification-tokens.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EmailVerificationTokenService } from '../orm-services/email-verification-tokens/email-verification-tokens.service';
+
+export type GeneratedToken = { token: NonSharedBuffer, hash: string}
 
 @Injectable()
 export class EmailNotificationService {
@@ -12,8 +15,7 @@ export class EmailNotificationService {
 
   constructor(
     private configService: ConfigService,
-    @InjectRepository(EmailVerificationTokens)
-    private usersRepository: Repository<EmailVerificationTokens>
+    private emailVerificationTokenService: EmailVerificationTokenService 
   ) {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -24,16 +26,18 @@ export class EmailNotificationService {
     });
   }
 
-  async generateEmailVerificationToken() {
+  async generateEmailVerificationToken(): Promise<GeneratedToken>{
     const token = randomBytes(32)
-    const tokenHash = createHash('sha256').update(token)
-    return { token, tokenHash}
+    const tokenHash = createHash('sha256').update(token).digest('hex')
+    return { token: token, hash: tokenHash}
   }
 
   async sendVerificationEmail(ToEmail: string) {
     this.configService.get;
 
+    const generatedToken = await this.generateEmailVerificationToken()
     // Call to ORM 
+    this.emailVerificationTokenService.saveVerificationToken({userId: 'asdf', tokenHash: generatedToken.hash, expiresAt: new Date()})
     // check if token exists
 
     const opciones = {
@@ -42,8 +46,6 @@ export class EmailNotificationService {
       subject: 'Recuperación de contraseña',
       html: `<h1>Recupera tu cuenta</h1><p>Usa este token: ${'12365468sdf435sd21f32s1df'}</p>`
     };
-
-     this.generateEmailVerificationToken
 
     console.log('Sending email');
     try {
