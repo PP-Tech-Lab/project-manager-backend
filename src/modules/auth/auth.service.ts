@@ -4,6 +4,7 @@ import { UsersService } from '../../orm-services/users/users.service';
 import { AuthInput, AuthResult, SignInData, SignUpData } from './types/auth.type';
 import * as bcrypt from 'bcrypt';
 import { EmailNotificationModule } from '../../services/email-notification.module';
+import { EmailNotificationService } from '../../services/email-notification.service';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +13,7 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-        private emailNotification: EmailNotificationModule
+        private emailNotification: EmailNotificationService
     ) {}
 
     async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -56,12 +57,12 @@ export class AuthService {
         return { accessToken, username: user.username, userId: user.userId}
     }
 
-    async signUp(newUser: SignUpData): Promise<AuthResult> {
-        const hashedPassword = await bcrypt.hash(newUser.password, this.saltOrRounds)
-        await this.usersService.registerNewUser(newUser.username, newUser.email, hashedPassword) // [TODO]: Proper error handling
-        // Call to email-verification service (newUser.username and email)
-        //await this.emailNotification.sendVerificationEmail()
-        return await this.authenticate({credential: newUser.username, password: newUser.password});
+    async signUp(newUserData: SignUpData): Promise<AuthResult> {
+        const hashedPassword = await bcrypt.hash(newUserData.password, this.saltOrRounds)
+        const newUser = await this.usersService.registerNewUser(newUserData.username, newUserData.email, hashedPassword) // [TODO]: Proper error handling
+        // call user orm to get uuid of new user
+        await this.emailNotification.sendVerificationEmail(newUser.email, newUser.userId) // Call to email-verification service (newUser.username and email)
+        return await this.authenticate({credential: newUserData.username, password: newUserData.password});
     }
 
     async emailExists(email: string): Promise<boolean> {

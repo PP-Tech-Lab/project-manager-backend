@@ -11,7 +11,7 @@ import { EmailNotificationModule } from '../../services/email-notification.modul
   providers: [AuthService, ConfigService],
   controllers: [AuthController],
   imports: [
-    UsersModule, EmailNotificationModule,
+    UsersModule,  EmailNotificationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

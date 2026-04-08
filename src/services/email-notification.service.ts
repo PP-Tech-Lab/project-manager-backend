@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailVerificationTokenService } from '../orm-services/email-verification-tokens/email-verification-tokens.service';
 
-export type GeneratedToken = { token: NonSharedBuffer, hash: string}
+export type GeneratedToken = { token: string, hash: string}
 
 @Injectable()
 export class EmailNotificationService {
@@ -27,17 +27,17 @@ export class EmailNotificationService {
   }
 
   async generateEmailVerificationToken(): Promise<GeneratedToken>{
-    const token = randomBytes(32)
+    const token = randomBytes(32).toString('hex')
     const tokenHash = createHash('sha256').update(token).digest('hex')
     return { token: token, hash: tokenHash}
   }
 
-  async sendVerificationEmail(ToEmail: string) {
+  async sendVerificationEmail(ToEmail: string, userId: string) {
     this.configService.get;
 
     const generatedToken = await this.generateEmailVerificationToken()
     // Call to ORM 
-    this.emailVerificationTokenService.saveVerificationToken({userId: 'asdf', tokenHash: generatedToken.hash, expiresAt: new Date()})
+    await this.emailVerificationTokenService.saveVerificationToken({userId: userId, tokenHash: generatedToken.hash, expiresAt: new Date()})
     // check if token exists
 
     const opciones = {

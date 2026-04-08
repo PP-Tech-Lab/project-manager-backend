@@ -19,8 +19,8 @@ export class UsersService {
         private usersRepository: Repository<UserEntity>
     ) {}
 
-    async registerNewUser(username: string, email: string, password: string): Promise<boolean> { // [TODO] Proper error handleing
-        const result = await this.usersRepository.insert({
+    async registerNewUser(username: string, email: string, password: string): Promise<UserEntity> { // [TODO] Proper error handleing
+        const result = await this.usersRepository.save({
             username: username,
             email: email,
             password: password,
@@ -28,7 +28,7 @@ export class UsersService {
             verified: false
         })
         this.logger.verbose(`[registerNewUser] Result: ${result}`)
-        return true
+        return result
     }
 
     async findUserByName(username: string): Promise<User | null> {
