@@ -6,8 +6,7 @@ import { EmailVerificationTokenService } from '../orm-services/email-verificatio
 import { Token } from '../orm-services/email-verification-tokens/email-verification-tokens.types';
 import dayjs from 'dayjs';
 import { UsersService } from '../orm-services/users/users.service';
-
-export type GeneratedToken = { token: string; hash: string };
+import { GeneratedToken } from './email-notification.types';
 
 @Injectable()
 export class EmailNotificationService {
@@ -33,7 +32,10 @@ export class EmailNotificationService {
     return { token: token, hash: tokenHash };
   }
 
-  async sendVerificationEmail(ToEmail: string, userId: string) {
+  async sendVerificationEmail(
+    toEmail: string,
+    userId: string,
+  ): Promise<boolean> {
     this.configService.get;
     const generatedToken = await this.generateEmailVerificationToken();
     await this.emailVerificationTokenService.saveVerificationToken({
@@ -45,18 +47,18 @@ export class EmailNotificationService {
 
     const opciones = {
       from: this.configService.get<string>('GMAIL_EMAIL'),
-      to: ToEmail,
+      to: toEmail,
       subject: 'Recuperación de contraseña',
       html: `<h1>Recupera tu cuenta</h1><p>Usa este token: ${generatedToken.token}</p>`,
     };
 
-    console.log('Sending email');
+    this.logger.verbose('[sendVerificationEmail] Sending email...');
     try {
       await this.transporter.sendMail(opciones);
-      console.log('Email sent');
+      this.logger.verbose('[sendVerificationEmail] Email succesfully sent');
       return true;
     } catch (error) {
-      console.error(error);
+      this.logger.error(`[sendVerificationEmail] ERROR: ${error}`);
       return false;
     }
   }

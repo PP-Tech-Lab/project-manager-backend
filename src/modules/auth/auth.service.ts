@@ -1,12 +1,7 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../orm-services/users/users.service';
-import {
-  AuthInput,
-  AuthResult,
-  SignInData,
-  SignUpData,
-} from './types/auth.type';
+import { AuthInput, AuthResult, SignInData, SignUpData } from './auth.type';
 import * as bcrypt from 'bcrypt';
 import { EmailNotificationService } from '../../services/email-notification.service';
 

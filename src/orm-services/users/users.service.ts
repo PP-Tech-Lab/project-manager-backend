@@ -2,14 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
-
-// [TODO] Move to users.types.ts
-export type User = {
-  userId: string;
-  username: string;
-  password: string;
-  email: string;
-};
+import { User } from './users.types'
 
 @Injectable()
 export class UsersService {
