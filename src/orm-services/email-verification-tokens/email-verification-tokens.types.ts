@@ -1,10 +1,9 @@
-import { UserEntity } from '../users/user.entity';
 import { EmailVerificationTokens } from './email-verification-tokens.entity';
 
-export interface SaveVerificationTokenProps { 
-    userId: string, 
-    tokenHash: string, 
-    expiresAt: Date
+export interface SaveVerificationTokenProps {
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
 }
 
-export type Token = InstanceType<typeof EmailVerificationTokens>
+export type Token = InstanceType<typeof EmailVerificationTokens>;

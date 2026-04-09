@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { UserEntity } from '../users/user.entity';
 
 @Entity()
@@ -6,7 +13,7 @@ export class EmailVerificationTokens {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @OneToOne(() => UserEntity, {eager: true})
+  @OneToOne(() => UserEntity, { eager: true })
   @JoinColumn({ name: 'userId', referencedColumnName: 'userId' })
   user!: UserEntity;
 
@@ -18,6 +25,4 @@ export class EmailVerificationTokens {
 
   @Column({ type: 'timestamp' })
   expiresAt!: Date;
-
-
 }

@@ -1,22 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class UserEntity {
-    @PrimaryGeneratedColumn("uuid")
-    userId!: string;
-    
-    @Column()
-    username!: string;
+  @PrimaryGeneratedColumn('uuid')
+  userId!: string;
 
-    @Column()
-    password!: string;
+  @Column()
+  username!: string;
 
-    @Column()
-    email!: string
+  @Column()
+  password!: string;
 
-    @Column()
-    isActive!: boolean
+  @Column()
+  email!: string;
 
-    @Column()
-    verified!: boolean
+  @Column()
+  isActive!: boolean;
+
+  @Column()
+  verified!: boolean;
 }

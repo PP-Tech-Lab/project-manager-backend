@@ -4,10 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { EmailVerificationTokenService } from './email-verification-tokens.service';
 
-
 @Module({
   imports: [TypeOrmModule.forFeature([EmailVerificationTokens])],
-  providers: [EmailVerificationTokenService,ConfigService],
-  exports: [EmailVerificationTokenService]
+  providers: [EmailVerificationTokenService, ConfigService],
+  exports: [EmailVerificationTokenService],
 })
 export class EmailVerificationModule {}

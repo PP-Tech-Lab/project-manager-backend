@@ -10,14 +10,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './orm-services/users/user.entity';
 import { EmailVerificationTokens } from './orm-services/email-verification-tokens/email-verification-tokens.entity';
 
-const configService = new ConfigService()
+const configService = new ConfigService();
 
 @Module({
-  imports: [UsersModule, AuthModule,
+  imports: [
+    UsersModule,
+    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env.development',
-      validate: validateEnv
+      validate: validateEnv,
     }),
     TestModule,
     TypeOrmModule.forRoot({
@@ -30,11 +32,10 @@ const configService = new ConfigService()
       entities: [UserEntity, EmailVerificationTokens],
       synchronize: true,
       retryAttempts: 5,
-      retryDelay: 1000
-    })
+      retryDelay: 1000,
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [AppService],
 })
-export class AppModule {
-}
+export class AppModule {}
