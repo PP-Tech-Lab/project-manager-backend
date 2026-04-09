@@ -60,8 +60,7 @@ export class AuthService {
     async signUp(newUserData: SignUpData): Promise<AuthResult> {
         const hashedPassword = await bcrypt.hash(newUserData.password, this.saltOrRounds)
         const newUser = await this.usersService.registerNewUser(newUserData.username, newUserData.email, hashedPassword) // [TODO]: Proper error handling
-        // call user orm to get uuid of new user
-        await this.emailNotification.sendVerificationEmail(newUser.email, newUser.userId) // Call to email-verification service (newUser.username and email)
+        await this.emailNotification.sendVerificationEmail(newUser.email, newUser.userId)
         return await this.authenticate({credential: newUserData.username, password: newUserData.password});
     }
 

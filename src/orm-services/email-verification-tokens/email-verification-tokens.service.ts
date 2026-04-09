@@ -36,7 +36,16 @@ export class EmailVerificationTokenService {
       return true
     }
 
+    async removeVerificationToken(id: string): Promise<boolean> {
+      return !!(await this.emailVerificationTokenRepository.delete(id))
+    }
+
     async checkExistingToken(id: string): Promise<Token | null> {
-      return this.emailVerificationTokenRepository.findOneBy({id})
+      return this.emailVerificationTokenRepository.findOne({where: {id}, relations: {user: true}})
+    }
+
+    async getTokenByHash(token: string): Promise<Token | null>  {
+      const tokenHash = createHash('sha256').update(token).digest('hex')
+      return await this.emailVerificationTokenRepository.findOneBy({tokenHash})
     }
 }

@@ -28,6 +28,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
+    "dayjs": "^1.11.20",
     "joi": "^18.0.2",
     "nodemailer": "^8.0.2",
     "pg": "^8.20.0",

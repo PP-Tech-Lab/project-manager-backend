@@ -6,9 +6,9 @@ export class EmailVerificationTokens {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @OneToOne(() => UserEntity)
+  @OneToOne(() => UserEntity, {eager: true})
   @JoinColumn({ name: 'userId', referencedColumnName: 'userId' })
-  user: UserEntity;
+  user!: UserEntity;
 
   @Column()
   tokenHash!: string;

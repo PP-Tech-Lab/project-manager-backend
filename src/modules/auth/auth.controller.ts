@@ -2,13 +2,15 @@ import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, R
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { UsersService } from '../../orm-services/users/users.service';
+import { EmailNotificationService } from '../../services/email-notification.service';
 
 @Controller('auth')
 export class AuthController {
     private readonly logger = new Logger(AuthController.name);
     constructor(
         private authService: AuthService,
-        private userService: UsersService
+        private userService: UsersService,
+        private emailNotificationService: EmailNotificationService
     ) {}
 
     @HttpCode(HttpStatus.OK)
@@ -59,5 +61,22 @@ export class AuthController {
     ) { 
         const result = await this.userService.findUser(username)
         return res.status(HttpStatus.OK).json({usernameExists: `${result ? true : false}`})
+    }
+
+    @Post('email-verification')
+    async emailVerification (
+        @Body() input: { username: string, token: string},
+        @Res() res
+    ) {
+        this.logger.debug('[emailVerification] Email verification request recieved')
+        if (!input.token) {
+            this.logger.warn('[emailVerification] Bad Request! Missing Token')
+            return res.status(HttpStatus.BAD_REQUEST).json({message: 'Bad request. Missing token field'})
+        }
+        // [TODO]: Validate if token is still valid
+        if (await this.emailNotificationService.validateEmailConfirmationToken(input.token))
+            return res.status(HttpStatus.OK).json()
+        else 
+            return res.status(HttpStatus.UNAUTHORIZED).json()
     }
 }
