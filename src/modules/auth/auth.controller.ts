@@ -49,9 +49,14 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('me')
-  getUserInfo(@Request() request) {
-    this.logger.verbose('[getUserInfo] [GET] Returning request');
-    return request.user;
+  async getUserInfo(
+    @Request() request,
+    @Res() res
+  ) {
+    const username = request.user.username; 
+    console.log(`[getUserInfo] [GET] Returning request for user ${ username}`);
+    const userVerified = await this.userService.isUserVerified(username)
+    return res.status(HttpStatus.OK).json({verified: userVerified, username})
   }
 
   @Post('register')

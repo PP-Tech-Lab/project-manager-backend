@@ -35,7 +35,6 @@ export class AuthService {
       if (isMatch) {
         this.logger.verbose(`[validateUser] User ${input.credential} found!`);
         return {
-          userId: user.userId,
           username: user.username,
         };
       }
@@ -47,7 +46,6 @@ export class AuthService {
 
   async signIn(user: SignInData): Promise<AuthResult> {
     const tokenPayload = {
-      sub: user.userId,
       username: user.username,
     };
 
@@ -55,7 +53,7 @@ export class AuthService {
     this.logger.verbose(
       `[signIn] Sign in Success! Sending Access token to user ${user.username}!`,
     );
-    return { accessToken, username: user.username, userId: user.userId };
+    return { accessToken, username: user.username};
   }
 
   async signUp(newUserData: SignUpData): Promise<AuthResult> {

@@ -3,7 +3,6 @@ export interface AuthInput {
   password: string;
 }
 export interface SignInData {
-  userId: string;
   username: string;
 }
 export interface SignUpData {
@@ -13,6 +12,5 @@ export interface SignUpData {
 }
 export interface AuthResult {
   accessToken: string;
-  userId: string;
   username: string;
 }

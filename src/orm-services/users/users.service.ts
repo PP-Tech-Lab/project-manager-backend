@@ -46,4 +46,9 @@ export class UsersService {
       where: [{ username: credentials }, { email: credentials }],
     });
   }
+
+  async isUserVerified(username: string): Promise<boolean> {
+    return !!(await this.usersRepository.findOne({where: {username: username, verified: true}}))
+  }
+
 }
