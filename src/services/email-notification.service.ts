@@ -32,6 +32,35 @@ export class EmailNotificationService {
     return { token: token, hash: tokenHash };
   }
 
+  async sendPasswordResetEmail(toEmail: string, userId: string): Promise<boolean> {
+    this.configService.get;
+    const generatedToken = await this.generateEmailVerificationToken();
+    await this.emailVerificationTokenService.saveVerificationToken({
+      userId: userId,
+      tokenHash: generatedToken.hash,
+      expiresAt: dayjs().add(3, 'days').toDate(),
+      tokenType: 'passwordReset'
+    });
+    // [TODO]: check if token exists. if true, update existing record instead of creating new one
+
+    const options = {
+      from: this.configService.get<string>('GMAIL_EMAIL'),
+      to: toEmail,
+      subject: 'Reestablece de Contraseña',
+      html: `<h1>Reestablece tu contraseña</h1><p>Usa este token: ${generatedToken.token}</p>`,
+    };
+
+    this.logger.verbose('[sendPasswordResetEmail] Sending email...');
+    try {
+      await this.transporter.sendMail(options);
+      this.logger.verbose('[sendPasswordResetEmail] Email succesfully sent');
+      return true;
+    } catch (error) {
+      this.logger.error(`[sendPasswordResetEmail] ERROR: ${error}`);
+      return false;
+    }
+  }
+
   async sendVerificationEmail(
     toEmail: string,
     userId: string,
@@ -42,19 +71,20 @@ export class EmailNotificationService {
       userId: userId,
       tokenHash: generatedToken.hash,
       expiresAt: dayjs().add(3, 'days').toDate(),
+      tokenType: 'emailVerification'
     });
     // [TODO]: check if token exists. if true, update existing record instead of creating new one
 
-    const opciones = {
+    const options = {
       from: this.configService.get<string>('GMAIL_EMAIL'),
       to: toEmail,
-      subject: 'Recuperación de contraseña',
-      html: `<h1>Recupera tu cuenta</h1><p>Usa este token: ${generatedToken.token}</p>`,
+      subject: 'Verificacion de correo Electronico',
+      html: `<h1>Activa tu cuenta</h1><p>Usa este token: ${generatedToken.token}</p>`,
     };
 
     this.logger.verbose('[sendVerificationEmail] Sending email...');
     try {
-      await this.transporter.sendMail(opciones);
+      await this.transporter.sendMail(options);
       this.logger.verbose('[sendVerificationEmail] Email succesfully sent');
       return true;
     } catch (error) {

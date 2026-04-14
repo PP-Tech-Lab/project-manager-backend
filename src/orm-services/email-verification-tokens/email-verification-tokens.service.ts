@@ -25,6 +25,7 @@ export class EmailVerificationTokenService {
         user: { userId: data.userId },
         tokenHash: data.tokenHash,
         expiresAt: data.expiresAt,
+        tokenType: data.tokenType
       });
     } catch (error) {
       const errorCode = (error as any).code;
@@ -35,6 +36,7 @@ export class EmailVerificationTokenService {
   }
 
   async updateVerificationToken(): Promise<boolean> {
+    // [TODO]
     return true;
   }
 

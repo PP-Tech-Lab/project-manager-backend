@@ -25,4 +25,7 @@ export class EmailVerificationTokens {
 
   @Column({ type: 'timestamp' })
   expiresAt!: Date;
+
+  @Column()
+  tokenType!: string;
 }

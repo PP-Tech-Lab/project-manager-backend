@@ -10,6 +10,7 @@ import {
   Res,
   Logger,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
@@ -33,11 +34,9 @@ export class AuthController {
   ) {
     if (!input.credential || !input.password) {
       this.logger.warn('[login] Bad request! Missing fields!');
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({
-          message: `Bad Request. Missing ${!input.credential ? 'username' : 'password'}`,
-        });
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: `Bad Request. Missing ${!input.credential ? 'username' : 'password'}`,
+      });
     } else {
       this.logger.debug(
         `[login] User "${input.credential}" attempting to login`,
@@ -49,14 +48,11 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('me')
-  async getUserInfo(
-    @Request() request,
-    @Res() res
-  ) {
-    const username = request.user.username; 
-    console.log(`[getUserInfo] [GET] Returning request for user ${ username}`);
-    const userVerified = await this.userService.isUserVerified(username)
-    return res.status(HttpStatus.OK).json({verified: userVerified, username})
+  async getUserInfo(@Request() request, @Res() res) {
+    const username = request.user.username;
+    console.log(`[getUserInfo] [GET] Returning request for user ${username}`);
+    const userVerified = await this.userService.isUserVerified(username);
+    return res.status(HttpStatus.OK).json({ verified: userVerified, username });
   }
 
   @Post('register')
@@ -84,7 +80,10 @@ export class AuthController {
   }
 
   @Get('check-username')
-  async checkUsername(@Query('username') username: string, @Res() res) {
+  async checkUsername(
+    @Query('username') username: string, 
+    @Res() res
+  ) {
     const result = await this.userService.findUser(username);
     return res
       .status(HttpStatus.OK)
@@ -99,11 +98,11 @@ export class AuthController {
     this.logger.debug(
       '[emailVerification] Email verification request recieved',
     );
-    if (!input.token) {
-      this.logger.warn('[emailVerification] Bad Request! Missing Token');
+    if (!input.token || !input.username) {
+      this.logger.warn('[emailVerification] Bad Request! Missing fields');
       return res
         .status(HttpStatus.BAD_REQUEST)
-        .json({ message: 'Bad request. Missing token field' });
+        .json({ message: 'Bad request. Missing fields' });
     }
     // [TODO]: Validate if token is still valid
     if (
@@ -113,5 +112,51 @@ export class AuthController {
     )
       return res.status(HttpStatus.OK).json();
     else return res.status(HttpStatus.UNAUTHORIZED).json();
+  }
+
+  @Post('request-reset-password')
+  async requestResetPassword(
+    @Body() input: { credential: string },
+    @Res() res,
+  ) {
+    if (!input.credential) {
+      this.logger.warn(
+        `[requestResetPassword] Bad request! Missing cretential field`,
+      );
+      return res.status(HttpStatus.BAD_REQUEST).json();
+    }
+
+    this.logger.debug(
+      `[requestResetPassword] Password reset requested for user ${input.credential}`,
+    );
+    const user = await this.userService.findUser(input.credential)
+    if (!user) {
+      this.logger.warn(
+        `[requestResetPassword] User does not exist`)
+        return res.status(HttpStatus.NOT_FOUND).json({message: 'Email does not exist'})
+    }
+
+    if (await this.emailNotificationService.sendPasswordResetEmail(user.email, user.userId)) 
+      return res.status(HttpStatus.OK).json();
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json()
+  }
+
+  @Patch('update-password')
+  async updatePassword(
+    @Body() input: {credential: string, newpassword: string},
+    @Res() res,
+  ) {
+    if (!input.credential || !input.newpassword) {
+      this.logger.warn(
+        `[updatePassword] Bad request! Missing fields`,
+      );
+      return res.status(HttpStatus.BAD_REQUEST).json();
+    }
+
+    this.logger.debug(
+      `[updatePassword] Password update for user ${input.credential}`,
+    );
+    // Call to emailNotificationService
+    return res.status(HttpStatus.OK).json();
   }
 }
