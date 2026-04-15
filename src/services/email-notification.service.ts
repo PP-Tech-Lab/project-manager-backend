@@ -93,7 +93,7 @@ export class EmailNotificationService {
     }
   }
 
-  async validateToken(token: string): Promise<boolean> {
+  async validateToken(token: string): Promise<boolean> { // [ BUG ] Move updateUserVerified to make this function as generic as possible
     this.logger.verbose('[validateEmailConfirmationToken] Verifing token...');
     const extistantToken =
       await this.emailVerificationTokenService.getTokenByHash(token);

@@ -169,7 +169,7 @@ export class AuthController {
         return res.status(HttpStatus.NOT_FOUND).json({message: 'User does not exist'})
     }
     const newHash = await this.authService.createPasswordHash(input.newpassword)
-    if (await this.userService.updatePassword(user.userId, newHash)) 
+    if (await this.userService.updateUserPassword(user.userId, newHash)) 
       return res.status(HttpStatus.OK).json();
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json()
   }

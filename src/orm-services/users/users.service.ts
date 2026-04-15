@@ -37,17 +37,28 @@ export class UsersService {
     return await this.usersRepository.findOneBy({ email });
   }
 
-  async updateUserVerified(id: string) {
-    return await this.usersRepository.update(id, { verified: true });
+  async updateUserVerified(credential: string): Promise<boolean> {
+    const user = await this.findUser(credential)
+    if (user)
+    {
+      await this.usersRepository.update(user.userId, { verified: true });
+      return true
+    } 
+    return false
   }
 
-  async updatePassword(id: string, newpassword: string) {
-    return await this.usersRepository.update(id, {password: newpassword})
+  async updateUserPassword(credential: string, newpassword: string): Promise<boolean> {
+    const user = await this.findUser(credential)
+    if (user) {
+      await this.usersRepository.update(user.userId, {password: newpassword})
+      return true 
+    }
+    return false
   }
 
-  async findUser(credentials: string): Promise<User | null> {
+  async findUser(credential: string): Promise<User | null> {
     return await this.usersRepository.findOne({
-      where: [{ username: credentials }, { email: credentials }],
+      where: [{ username: credential }, { email: credential }],
     });
   }
 
