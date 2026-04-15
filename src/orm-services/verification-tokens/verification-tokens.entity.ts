@@ -9,7 +9,7 @@ import {
 import { UserEntity } from '../users/user.entity';
 
 @Entity()
-export class EmailVerificationTokens {
+export class VerificationTokens {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 

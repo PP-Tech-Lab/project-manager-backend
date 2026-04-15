@@ -1,19 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createHash } from 'crypto';
-import { EmailVerificationTokens } from './email-verification-tokens.entity';
+import { VerificationTokens } from './verification-tokens.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   SaveVerificationTokenProps,
   Token,
-} from './email-verification-tokens.types';
+} from './verification-tokens.types';
 
 @Injectable()
-export class EmailVerificationTokenService {
-  private readonly logger = new Logger(EmailVerificationTokenService.name);
+export class VerificationTokenService {
+  private readonly logger = new Logger(VerificationTokenService.name);
   constructor(
-    @InjectRepository(EmailVerificationTokens)
-    private emailVerificationTokenRepository: Repository<EmailVerificationTokens>,
+    @InjectRepository(VerificationTokens)
+    private verificationTokenRepository: Repository<VerificationTokens>,
   ) {}
 
   async saveVerificationToken(
@@ -21,7 +21,7 @@ export class EmailVerificationTokenService {
   ): Promise<boolean> {
     try {
       // [TODO]: Implement Proper error exception handling
-      const result = await this.emailVerificationTokenRepository.save({
+      const result = await this.verificationTokenRepository.save({
         user: { userId: data.userId },
         tokenHash: data.tokenHash,
         expiresAt: data.expiresAt,
@@ -41,11 +41,11 @@ export class EmailVerificationTokenService {
   }
 
   async removeVerificationToken(id: string): Promise<boolean> {
-    return !!(await this.emailVerificationTokenRepository.delete(id));
+    return !!(await this.verificationTokenRepository.delete(id));
   }
 
   async checkExistingToken(id: string): Promise<Token | null> {
-    return this.emailVerificationTokenRepository.findOne({
+    return this.verificationTokenRepository.findOne({
       where: { id },
       relations: { user: true },
     });
@@ -53,6 +53,6 @@ export class EmailVerificationTokenService {
 
   async getTokenByHash(token: string): Promise<Token | null> {
     const tokenHash = createHash('sha256').update(token).digest('hex');
-    return await this.emailVerificationTokenRepository.findOneBy({ tokenHash });
+    return await this.verificationTokenRepository.findOneBy({ tokenHash });
   }
 }

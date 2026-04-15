@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { EmailNotificationService } from './email-notification.service';
-import { EmailVerificationTokens } from '../orm-services/email-verification-tokens/email-verification-tokens.entity';
+import { VerificationTokens } from '../orm-services/verification-tokens/verification-tokens.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EmailVerificationTokenService } from '../orm-services/email-verification-tokens/email-verification-tokens.service';
+import { VerificationTokenService } from '../orm-services/verification-tokens/verification-tokens.service';
 import { UsersModule } from '../orm-services/users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([EmailVerificationTokens]), UsersModule],
-  providers: [EmailNotificationService, EmailVerificationTokenService],
+  imports: [TypeOrmModule.forFeature([VerificationTokens]), UsersModule],
+  providers: [EmailNotificationService, VerificationTokenService],
   exports: [EmailNotificationService],
 })
 export class EmailNotificationModule {}

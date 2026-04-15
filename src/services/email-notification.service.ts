@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { createHash, randomBytes } from 'crypto';
-import { EmailVerificationTokenService } from '../orm-services/email-verification-tokens/email-verification-tokens.service';
-import { Token } from '../orm-services/email-verification-tokens/email-verification-tokens.types';
+import { VerificationTokenService } from '../orm-services/verification-tokens/verification-tokens.service';
+import { Token } from '../orm-services/verification-tokens/verification-tokens.types';
 import dayjs from 'dayjs';
 import { UsersService } from '../orm-services/users/users.service';
 import { GeneratedToken } from './email-notification.types';
@@ -14,7 +14,7 @@ export class EmailNotificationService {
   private readonly logger = new Logger(EmailNotificationService.name);
   constructor(
     private configService: ConfigService,
-    private emailVerificationTokenService: EmailVerificationTokenService,
+    private verificationTokenService: VerificationTokenService,
     private userService: UsersService,
   ) {
     this.transporter = nodemailer.createTransport({
@@ -35,7 +35,7 @@ export class EmailNotificationService {
   async sendPasswordResetEmail(toEmail: string, userId: string): Promise<boolean> {
     this.configService.get;
     const generatedToken = await this.generateEmailVerificationToken();
-    await this.emailVerificationTokenService.saveVerificationToken({
+    await this.verificationTokenService.saveVerificationToken({
       userId: userId,
       tokenHash: generatedToken.hash,
       expiresAt: dayjs().add(20, 'minutes').toDate(),
@@ -67,7 +67,7 @@ export class EmailNotificationService {
   ): Promise<boolean> {
     this.configService.get;
     const generatedToken = await this.generateEmailVerificationToken();
-    await this.emailVerificationTokenService.saveVerificationToken({
+    await this.verificationTokenService.saveVerificationToken({
       userId: userId,
       tokenHash: generatedToken.hash,
       expiresAt: dayjs().add(3, 'days').toDate(),
@@ -96,10 +96,10 @@ export class EmailNotificationService {
   async validateToken(token: string): Promise<boolean> { // [ BUG ] Move updateUserVerified to make this function as generic as possible
     this.logger.verbose('[validateEmailConfirmationToken] Verifing token...');
     const extistantToken =
-      await this.emailVerificationTokenService.getTokenByHash(token);
+      await this.verificationTokenService.getTokenByHash(token);
     if (extistantToken) {
       if (await this.isTokenValid(extistantToken)) {
-        await this.emailVerificationTokenService.removeVerificationToken(
+        await this.verificationTokenService.removeVerificationToken(
           extistantToken.id,
         );
         await this.userService.updateUserVerified(extistantToken.user.userId);
@@ -108,7 +108,7 @@ export class EmailNotificationService {
           this.logger.warn(
             '[validateEmailConfirmationToken] Token expired. removing from db',
             );
-          await this.emailVerificationTokenService.removeVerificationToken(
+          await this.verificationTokenService.removeVerificationToken(
             extistantToken.id,
           );
           return false
