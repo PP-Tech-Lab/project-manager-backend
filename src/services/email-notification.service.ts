@@ -38,7 +38,7 @@ export class EmailNotificationService {
     await this.emailVerificationTokenService.saveVerificationToken({
       userId: userId,
       tokenHash: generatedToken.hash,
-      expiresAt: dayjs().add(3, 'days').toDate(),
+      expiresAt: dayjs().add(20, 'minutes').toDate(),
       tokenType: 'passwordReset'
     });
     // [TODO]: check if token exists. if true, update existing record instead of creating new one
@@ -93,7 +93,7 @@ export class EmailNotificationService {
     }
   }
 
-  async validateEmailConfirmationToken(token: string): Promise<boolean> {
+  async validateToken(token: string): Promise<boolean> {
     this.logger.verbose('[validateEmailConfirmationToken] Verifing token...');
     const extistantToken =
       await this.emailVerificationTokenService.getTokenByHash(token);
@@ -104,10 +104,18 @@ export class EmailNotificationService {
         );
         await this.userService.updateUserVerified(extistantToken.user.userId);
         return true;
+      } else {
+          this.logger.warn(
+            '[validateEmailConfirmationToken] Token expired. removing from db',
+            );
+          await this.emailVerificationTokenService.removeVerificationToken(
+            extistantToken.id,
+          );
+          return false
       }
     }
     this.logger.warn(
-      '[validateEmailConfirmationToken] Token expired or non-existant',
+      '[validateEmailConfirmationToken] Token non-existant',
     );
     return false;
   }

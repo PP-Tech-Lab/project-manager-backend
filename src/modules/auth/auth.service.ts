@@ -56,11 +56,15 @@ export class AuthService {
     return { accessToken, username: user.username};
   }
 
-  async signUp(newUserData: SignUpData): Promise<AuthResult> {
-    const hashedPassword = await bcrypt.hash(
-      newUserData.password,
+  async createPasswordHash(password: string) {
+    return await bcrypt.hash(
+      password,
       this.saltOrRounds,
     );
+  }
+
+  async signUp(newUserData: SignUpData): Promise<AuthResult> {
+    const hashedPassword = await this.createPasswordHash(newUserData.password)
     const newUser = await this.usersService.registerNewUser(
       newUserData.username,
       newUserData.email,

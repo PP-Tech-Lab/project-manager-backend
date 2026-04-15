@@ -41,6 +41,10 @@ export class UsersService {
     return await this.usersRepository.update(id, { verified: true });
   }
 
+  async updatePassword(id: string, newpassword: string) {
+    return await this.usersRepository.update(id, {password: newpassword})
+  }
+
   async findUser(credentials: string): Promise<User | null> {
     return await this.usersRepository.findOne({
       where: [{ username: credentials }, { email: credentials }],

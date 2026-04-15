@@ -106,7 +106,7 @@ export class AuthController {
     }
     // [TODO]: Validate if token is still valid
     if (
-      await this.emailNotificationService.validateEmailConfirmationToken(
+      await this.emailNotificationService.validateToken(
         input.token,
       )
     )
@@ -114,7 +114,7 @@ export class AuthController {
     else return res.status(HttpStatus.UNAUTHORIZED).json();
   }
 
-  @Post('request-reset-password')
+  @Post('reset-password')
   async requestResetPassword(
     @Body() input: { credential: string },
     @Res() res,
@@ -125,6 +125,7 @@ export class AuthController {
       );
       return res.status(HttpStatus.BAD_REQUEST).json();
     }
+    // [TODO]: check if token exists. if true, update existing record instead of creating new one
 
     this.logger.debug(
       `[requestResetPassword] Password reset requested for user ${input.credential}`,
@@ -141,22 +142,36 @@ export class AuthController {
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json()
   }
 
-  @Patch('update-password')
+  @Patch('reset-password')
   async updatePassword(
-    @Body() input: {credential: string, newpassword: string},
+    @Body() input: {credential: string, token: string, newpassword: string},
     @Res() res,
   ) {
-    if (!input.credential || !input.newpassword) {
+    if (!input.credential || !input.newpassword || !input.token) {
       this.logger.warn(
         `[updatePassword] Bad request! Missing fields`,
       );
       return res.status(HttpStatus.BAD_REQUEST).json();
     }
-
+    if (!this.emailNotificationService.validateToken(input.token)) {
+      this.logger.warn(
+        `[updatePassword] Token not valid`
+      );
+      return res.status(HttpStatus.FORBIDDEN).json({message: 'Token expired or nonexistant'})
+    }
     this.logger.debug(
       `[updatePassword] Password update for user ${input.credential}`,
     );
-    // Call to emailNotificationService
-    return res.status(HttpStatus.OK).json();
+    const user = await this.userService.findUser(input.credential)
+    if (!user) {
+      this.logger.warn(
+        `[updatePassword] User does not exist`)
+        return res.status(HttpStatus.NOT_FOUND).json({message: 'User does not exist'})
+    }
+    const newHash = await this.authService.createPasswordHash(input.newpassword)
+    if (await this.userService.updatePassword(user.userId, newHash)) 
+      return res.status(HttpStatus.OK).json();
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json()
   }
 }
+
