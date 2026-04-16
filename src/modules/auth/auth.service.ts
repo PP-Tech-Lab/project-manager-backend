@@ -88,4 +88,8 @@ export class AuthService {
 
     return false;
   }
+
+  async userExists(username): Promise<boolean> {
+    return await this.usersService.findUser(username) ? true : false
+  }
 }

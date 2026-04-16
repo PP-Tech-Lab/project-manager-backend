@@ -79,15 +79,17 @@ export class AuthController {
     }
   }
 
+  // [TODO]: Implement proper query param validation
   @Get('check-username')
   async checkUsername(
     @Query('username') username: string, 
     @Res() res
   ) {
-    const result = await this.userService.findUser(username);
+    if (username === undefined)
+      return res.status(HttpStatus.BAD_REQUEST).json({message: 'Missing params'})
     return res
       .status(HttpStatus.OK)
-      .json({ usernameExists: `${result ? true : false}` });
+      .json({ usernameExists: `${await this.authService.userExists(username)}` });
   }
 
   @Post('email-verification')
