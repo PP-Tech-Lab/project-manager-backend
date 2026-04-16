@@ -1,7 +1,13 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../orm-services/users/users.service';
-import { AuthInput, AuthResult, SignInData, SignUpData } from './auth.type';
+import {
+  AuthInput,
+  AuthResult,
+  EmailVerifData,
+  SignInData,
+  SignUpData,
+} from './auth.type';
 import * as bcrypt from 'bcrypt';
 import { EmailNotificationService } from '../../services/email-notification.service';
 
@@ -12,7 +18,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private emailNotification: EmailNotificationService,
+    private emailNotificationService: EmailNotificationService,
   ) {}
 
   async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -53,24 +59,21 @@ export class AuthService {
     this.logger.verbose(
       `[signIn] Sign in Success! Sending Access token to user ${user.username}!`,
     );
-    return { accessToken, username: user.username};
+    return { accessToken, username: user.username };
   }
 
   async createPasswordHash(password: string) {
-    return await bcrypt.hash(
-      password,
-      this.saltOrRounds,
-    );
+    return await bcrypt.hash(password, this.saltOrRounds);
   }
 
   async signUp(newUserData: SignUpData): Promise<AuthResult> {
-    const hashedPassword = await this.createPasswordHash(newUserData.password)
+    const hashedPassword = await this.createPasswordHash(newUserData.password);
     const newUser = await this.usersService.registerNewUser(
       newUserData.username,
       newUserData.email,
       hashedPassword,
     ); // [TODO]: Proper error handling
-    await this.emailNotification.sendVerificationEmail(
+    await this.emailNotificationService.sendVerificationEmail(
       newUser.email,
       newUser.userId,
     );
@@ -90,6 +93,13 @@ export class AuthService {
   }
 
   async userExists(username): Promise<boolean> {
-    return await this.usersService.findUser(username) ? true : false
+    return (await this.usersService.findUser(username)) ? true : false;
+  }
+
+  async emailVerificationHandler(data: EmailVerifData): Promise<boolean> {
+    const extistantToken = await this.emailNotificationService.isTokenValid(data.token);
+    if (extistantToken)
+      return await this.emailNotificationService.verifyUser(extistantToken);
+    return false
   }
 }

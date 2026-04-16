@@ -14,3 +14,7 @@ export interface AuthResult {
   accessToken: string;
   username: string;
 }
+
+export interface EmailVerifData {
+  token: string
+}

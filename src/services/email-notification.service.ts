@@ -7,6 +7,7 @@ import { Token } from '../orm-services/verification-tokens/verification-tokens.t
 import dayjs from 'dayjs';
 import { UsersService } from '../orm-services/users/users.service';
 import { GeneratedToken } from './email-notification.types';
+import { VerificationTokens } from '../orm-services/verification-tokens/verification-tokens.entity';
 
 @Injectable()
 export class EmailNotificationService {
@@ -32,14 +33,17 @@ export class EmailNotificationService {
     return { token: token, hash: tokenHash };
   }
 
-  async sendPasswordResetEmail(toEmail: string, userId: string): Promise<boolean> {
+  async sendPasswordResetEmail(
+    toEmail: string,
+    userId: string,
+  ): Promise<boolean> {
     this.configService.get;
     const generatedToken = await this.generateEmailVerificationToken();
     await this.verificationTokenService.saveVerificationToken({
       userId: userId,
       tokenHash: generatedToken.hash,
       expiresAt: dayjs().add(20, 'minutes').toDate(),
-      tokenType: 'passwordReset'
+      tokenType: 'passwordReset',
     });
     // [TODO]: check if token exists. if true, update existing record instead of creating new one
 
@@ -71,7 +75,7 @@ export class EmailNotificationService {
       userId: userId,
       tokenHash: generatedToken.hash,
       expiresAt: dayjs().add(3, 'days').toDate(),
-      tokenType: 'emailVerification'
+      tokenType: 'emailVerification',
     });
     // [TODO]: check if token exists. if true, update existing record instead of creating new one
 
@@ -93,34 +97,38 @@ export class EmailNotificationService {
     }
   }
 
-  async validateToken(token: string): Promise<boolean> { // [ BUG ] Move updateUserVerified to make this function as generic as possible
-    this.logger.verbose('[validateEmailConfirmationToken] Verifing token...');
-    const extistantToken =
-      await this.verificationTokenService.getTokenByHash(token);
-    if (extistantToken) {
-      if (await this.isTokenValid(extistantToken)) {
+  async verifyUser(existantToken: VerificationTokens): Promise<boolean> {
+    this.logger.verbose('[validateEmailToken] Verifing token...');
+    if (existantToken) {
+      if (await this.userService.updateUserVerified(existantToken.user.username)) {
         await this.verificationTokenService.removeVerificationToken(
-          extistantToken.id,
+          existantToken.id,
         );
-        await this.userService.updateUserVerified(extistantToken.user.userId);
         return true;
-      } else {
-          this.logger.warn(
-            '[validateEmailConfirmationToken] Token expired. removing from db',
-            );
-          await this.verificationTokenService.removeVerificationToken(
-            extistantToken.id,
-          );
-          return false
       }
+      this.logger.error(`[validateEmailToken] Could not find user ${existantToken.user.username}`)
+      return false
     }
-    this.logger.warn(
-      '[validateEmailConfirmationToken] Token non-existant',
-    );
+    this.logger.warn('[validateEmailToken] Token non-existant');
     return false;
   }
 
-  async isTokenValid(token: Token): Promise<boolean> {
-    return dayjs().isBefore(token.expiresAt);
+  // [TODO]: Fix this
+  async validatePasswordResetToken(token: string) {}
+
+  async isTokenValid(token: string): Promise<VerificationTokens | null> {
+    const existantToken =
+      await this.verificationTokenService.getTokenByHash(token);
+    if (existantToken) {
+      if (dayjs().isBefore(existantToken.expiresAt)) {
+        return existantToken;
+      } else {
+        await this.verificationTokenService.removeVerificationToken(
+        existantToken.id,
+      );
+      return null
+      }
+    }
+    return null;
   }
 }

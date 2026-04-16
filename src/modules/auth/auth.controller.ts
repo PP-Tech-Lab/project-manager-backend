@@ -81,39 +81,33 @@ export class AuthController {
 
   // [TODO]: Implement proper query param validation
   @Get('check-username')
-  async checkUsername(
-    @Query('username') username: string, 
-    @Res() res
-  ) {
+  async checkUsername(@Query('username') username: string, @Res() res) {
     if (username === undefined)
-      return res.status(HttpStatus.BAD_REQUEST).json({message: 'Missing params'})
-    return res
-      .status(HttpStatus.OK)
-      .json({ usernameExists: `${await this.authService.userExists(username)}` });
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'Missing params' });
+    return res.status(HttpStatus.OK).json({
+      usernameExists: `${await this.authService.userExists(username)}`,
+    });
   }
 
   @Post('email-verification')
   async emailVerification(
-    @Body() input: { username: string; token: string },
+    @Body() input: { token: string },
     @Res() res,
   ) {
     this.logger.debug(
       '[emailVerification] Email verification request recieved',
     );
-    if (!input.token || !input.username) {
+    if (!input.token) {
       this.logger.warn('[emailVerification] Bad Request! Missing fields');
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: 'Bad request. Missing fields' });
     }
-    // [TODO]: Validate if token is still valid
-    if (
-      await this.emailNotificationService.validateToken(
-        input.token,
-      )
-    )
-      return res.status(HttpStatus.OK).json();
-    else return res.status(HttpStatus.UNAUTHORIZED).json();
+    if (await this.authService.emailVerificationHandler(input))
+      return res.status(HttpStatus.OK).json({message: 'Email verified!'});
+    else return res.status(HttpStatus.UNAUTHORIZED).json({message: 'Token expired or non-existant'});
   }
 
   @Post('reset-password')
@@ -132,48 +126,55 @@ export class AuthController {
     this.logger.debug(
       `[requestResetPassword] Password reset requested for user ${input.credential}`,
     );
-    const user = await this.userService.findUser(input.credential)
+    const user = await this.userService.findUser(input.credential);
     if (!user) {
-      this.logger.warn(
-        `[requestResetPassword] User does not exist`)
-        return res.status(HttpStatus.NOT_FOUND).json({message: 'Email does not exist'})
+      this.logger.warn(`[requestResetPassword] User does not exist`);
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'Email does not exist' });
     }
 
-    if (await this.emailNotificationService.sendPasswordResetEmail(user.email, user.userId)) 
+    if (
+      await this.emailNotificationService.sendPasswordResetEmail(
+        user.email,
+        user.userId,
+      )
+    )
       return res.status(HttpStatus.OK).json();
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json()
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json();
   }
 
+  // [TODO] FIX THIS CURRENTLY BROKEN
   @Patch('reset-password')
   async updatePassword(
-    @Body() input: {credential: string, token: string, newpassword: string},
+    @Body() input: { credential: string; token: string; newpassword: string },
     @Res() res,
   ) {
     if (!input.credential || !input.newpassword || !input.token) {
-      this.logger.warn(
-        `[updatePassword] Bad request! Missing fields`,
-      );
+      this.logger.warn(`[updatePassword] Bad request! Missing fields`);
       return res.status(HttpStatus.BAD_REQUEST).json();
     }
-    if (!this.emailNotificationService.validateToken(input.token)) {
-      this.logger.warn(
-        `[updatePassword] Token not valid`
-      );
-      return res.status(HttpStatus.FORBIDDEN).json({message: 'Token expired or nonexistant'})
+    if (!this.emailNotificationService.validatePasswordResetToken(input.token)) { // [TODO]: Fix this. Not working
+      this.logger.warn(`[updatePassword] Token not valid`);
+      return res
+        .status(HttpStatus.FORBIDDEN)
+        .json({ message: 'Token expired or nonexistant' });
     }
     this.logger.debug(
       `[updatePassword] Password update for user ${input.credential}`,
     );
-    const user = await this.userService.findUser(input.credential)
+    const user = await this.userService.findUser(input.credential);
     if (!user) {
-      this.logger.warn(
-        `[updatePassword] User does not exist`)
-        return res.status(HttpStatus.NOT_FOUND).json({message: 'User does not exist'})
+      this.logger.warn(`[updatePassword] User does not exist`);
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'User does not exist' });
     }
-    const newHash = await this.authService.createPasswordHash(input.newpassword)
-    if (await this.userService.updateUserPassword(user.userId, newHash)) 
+    const newHash = await this.authService.createPasswordHash(
+      input.newpassword,
+    );
+    if (await this.userService.updateUserPassword(user.userId, newHash))
       return res.status(HttpStatus.OK).json();
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json()
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json();
   }
 }
-
