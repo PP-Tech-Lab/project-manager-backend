@@ -5,12 +5,17 @@ import {
   AuthInput,
   AuthResult,
   EmailVerifData,
+  GeneratedToken,
   PasswordRequestData,
   SignInData,
   SignUpData,
 } from './auth.type';
 import * as bcrypt from 'bcrypt';
 import { EmailNotificationService } from '../../services/email-notification.service';
+import { VerificationTokenService } from '../../orm-services/verification-tokens/verification-tokens.service';
+import { VerificationTokens } from '../../orm-services/verification-tokens/verification-tokens.entity';
+import dayjs from 'dayjs';
+import { createHash, randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +23,7 @@ export class AuthService {
   private saltOrRounds: number = 10;
   constructor(
     private usersService: UsersService,
+    private verificationTokenService: VerificationTokenService,
     private jwtService: JwtService,
     private emailNotificationService: EmailNotificationService,
   ) {}
@@ -69,6 +75,7 @@ export class AuthService {
 
   async signUp(newUserData: SignUpData): Promise<AuthResult> {
     const hashedPassword = await this.createPasswordHash(newUserData.password);
+    const newToken = await this.generateVerificationToken()
     const newUser = await this.usersService.registerNewUser(
       newUserData.username,
       newUserData.email,
@@ -76,8 +83,14 @@ export class AuthService {
     ); // [TODO]: Proper error handling
     await this.emailNotificationService.sendVerificationEmail(
       newUser.email,
-      newUser.userId,
+      newToken.token
     );
+    await this.verificationTokenService.saveVerificationToken({
+      userId: newUser.userId,
+      tokenHash: newToken.hash,
+      expiresAt: dayjs().add(20, 'minutes').toDate(),
+      tokenType: 'passwordReset',
+    });
     return await this.authenticate({
       credential: newUserData.username,
       password: newUserData.password,
@@ -98,24 +111,73 @@ export class AuthService {
   }
 
   async emailVerificationHandler(data: EmailVerifData): Promise<boolean> {
-    const extistantToken = await this.emailNotificationService.isTokenValid(data.token);
+    const extistantToken = await this.isTokenValid(data.token);
     if (extistantToken)
-      return await this.emailNotificationService.verifyUser(extistantToken);
+      return await this.verifyUser(extistantToken);
     return false
   }
 
   async passwordResetRequestHandler(data: PasswordRequestData): Promise<boolean> {
     const user = await this.usersService.findEmail(data.userEmail)
-    if (user) {
+    const newToken = await this.generateVerificationToken()
+    if (user) { // [TODO] Error handling
       await this.emailNotificationService.sendPasswordResetEmail(
         user.email,
-        user.userId,
+        newToken.token,
       )
+      await this.verificationTokenService.saveVerificationToken({
+        userId: user.userId,
+        tokenHash: newToken.hash,
+        expiresAt: dayjs().add(20, 'minutes').toDate(),
+        tokenType: 'passwordReset',
+      });
       return true  
     }
     return false
   }
 
+  async verifyUser(existantToken: VerificationTokens): Promise<boolean> {
+    this.logger.verbose('[validateEmailToken] Verifing token...');
+    if (existantToken) {
+      if (await this.usersService.updateUserVerified(existantToken.user.username)) {
+        await this.verificationTokenService.removeVerificationToken(
+          existantToken.id,
+        );
+        return true;
+      }
+      this.logger.error(`[validateEmailToken] Could not find user ${existantToken.user.username}`)
+      return false
+    }
+    this.logger.warn('[validateEmailToken] Token non-existant');
+    return false;
+  }
+
+  async isTokenValid(token: string): Promise<VerificationTokens | null> {
+    const existantToken =
+      await this.verificationTokenService.getTokenByHash(token);
+    if (existantToken) {
+      if (dayjs().isBefore(existantToken.expiresAt)) {
+        return existantToken;
+      } else {
+          await this.verificationTokenService.removeVerificationToken(
+          existantToken.id,
+        );
+        return null
+      }
+    }
+      return null;
+  }
+
+  async generateVerificationToken(): Promise<GeneratedToken> {
+    const token = randomBytes(32).toString('hex');
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    return { token: token, hash: tokenHash };
+  }
+  // [TODO]: Finish this
+  async validatePasswordResetToken(token: string) {}
+
+  // [TODO]: Finish this
   async passwordResetUpdateHandler() {}
+
 }
 

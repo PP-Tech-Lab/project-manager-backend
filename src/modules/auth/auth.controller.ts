@@ -15,7 +15,6 @@ import {
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { UsersService } from '../../orm-services/users/users.service';
-import { EmailNotificationService } from '../../services/email-notification.service';
 
 @Controller('auth')
 export class AuthController {
@@ -23,7 +22,6 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private userService: UsersService,
-    private emailNotificationService: EmailNotificationService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -147,7 +145,7 @@ export class AuthController {
       this.logger.warn(`[updatePassword] Bad request! Missing fields`);
       return res.status(HttpStatus.BAD_REQUEST).json();
     }
-    if (!this.emailNotificationService.validatePasswordResetToken(input.token)) { // [TODO]: Fix this. Not working
+    if (!this.authService.validatePasswordResetToken(input.token)) { // [TODO]: Fix this. Not working
       this.logger.warn(`[updatePassword] Token not valid`);
       return res
         .status(HttpStatus.FORBIDDEN)

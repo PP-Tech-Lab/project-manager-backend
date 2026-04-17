@@ -16,9 +16,11 @@ export interface AuthResult {
 }
 
 export interface EmailVerifData {
-  token: string
+  token: string;
 }
 
 export interface PasswordRequestData {
-  userEmail: string
+  userEmail: string;
 }
+
+export type GeneratedToken = { token: string; hash: string };
