@@ -5,6 +5,7 @@ import {
   AuthInput,
   AuthResult,
   EmailVerifData,
+  PasswordRequestData,
   SignInData,
   SignUpData,
 } from './auth.type';
@@ -92,7 +93,7 @@ export class AuthService {
     return false;
   }
 
-  async userExists(username): Promise<boolean> {
+  async userExists(username: string): Promise<boolean> {
     return (await this.usersService.findUser(username)) ? true : false;
   }
 
@@ -102,4 +103,19 @@ export class AuthService {
       return await this.emailNotificationService.verifyUser(extistantToken);
     return false
   }
+
+  async passwordResetRequestHandler(data: PasswordRequestData): Promise<boolean> {
+    const user = await this.usersService.findEmail(data.userEmail)
+    if (user) {
+      await this.emailNotificationService.sendPasswordResetEmail(
+        user.email,
+        user.userId,
+      )
+      return true  
+    }
+    return false
+  }
+
+  async passwordResetUpdateHandler() {}
 }
+

@@ -27,6 +27,7 @@ export class EmailNotificationService {
     });
   }
 
+  // [TODO]: Move to auth service
   async generateEmailVerificationToken(): Promise<GeneratedToken> {
     const token = randomBytes(32).toString('hex');
     const tokenHash = createHash('sha256').update(token).digest('hex');
@@ -45,16 +46,15 @@ export class EmailNotificationService {
       expiresAt: dayjs().add(20, 'minutes').toDate(),
       tokenType: 'passwordReset',
     });
-    // [TODO]: check if token exists. if true, update existing record instead of creating new one
 
     const options = {
       from: this.configService.get<string>('GMAIL_EMAIL'),
       to: toEmail,
-      subject: 'Reestablece de Contraseña',
+      subject: 'Reestablece tu Contraseña',
       html: `<h1>Reestablece tu contraseña</h1><p>Usa este token: ${generatedToken.token}</p>`,
     };
 
-    this.logger.verbose('[sendPasswordResetEmail] Sending email...');
+    this.logger.debug(`[sendPasswordResetEmail] Sending email to ${toEmail} with token ${generatedToken.token}`);
     try {
       await this.transporter.sendMail(options);
       this.logger.verbose('[sendPasswordResetEmail] Email succesfully sent');
@@ -77,7 +77,6 @@ export class EmailNotificationService {
       expiresAt: dayjs().add(3, 'days').toDate(),
       tokenType: 'emailVerification',
     });
-    // [TODO]: check if token exists. if true, update existing record instead of creating new one
 
     const options = {
       from: this.configService.get<string>('GMAIL_EMAIL'),
@@ -86,7 +85,7 @@ export class EmailNotificationService {
       html: `<h1>Activa tu cuenta</h1><p>Usa este token: ${generatedToken.token}</p>`,
     };
 
-    this.logger.verbose('[sendVerificationEmail] Sending email...');
+    this.logger.debug(`[sendPasswordResetEmail] Sending email to ${toEmail} with token ${generatedToken.token}`);
     try {
       await this.transporter.sendMail(options);
       this.logger.verbose('[sendVerificationEmail] Email succesfully sent');
@@ -96,7 +95,7 @@ export class EmailNotificationService {
       return false;
     }
   }
-
+  // [TODO]: Move to auth service
   async verifyUser(existantToken: VerificationTokens): Promise<boolean> {
     this.logger.verbose('[validateEmailToken] Verifing token...');
     if (existantToken) {
@@ -113,7 +112,7 @@ export class EmailNotificationService {
     return false;
   }
 
-  // [TODO]: Fix this
+  // [TODO]: Finish this and move to auth service
   async validatePasswordResetToken(token: string) {}
 
   async isTokenValid(token: string): Promise<VerificationTokens | null> {

@@ -112,35 +112,28 @@ export class AuthController {
 
   @Post('reset-password')
   async requestResetPassword(
-    @Body() input: { credential: string },
+    @Body() input: { userEmail: string },
     @Res() res,
   ) {
-    if (!input.credential) {
+    if (!input.userEmail) {
       this.logger.warn(
-        `[requestResetPassword] Bad request! Missing cretential field`,
+        `[requestResetPassword] Bad request! Missing credential field`,
       );
       return res.status(HttpStatus.BAD_REQUEST).json();
     }
     // [TODO]: check if token exists. if true, update existing record instead of creating new one
 
     this.logger.debug(
-      `[requestResetPassword] Password reset requested for user ${input.credential}`,
+      `[requestResetPassword] Password reset requested for user with email ${input.userEmail}`,
     );
-    const user = await this.userService.findUser(input.credential);
-    if (!user) {
-      this.logger.warn(`[requestResetPassword] User does not exist`);
+    if (!await this.authService.userExists(input.userEmail)) {
+      this.logger.warn(`[requestResetPassword] Email does not exist`);
       return res
         .status(HttpStatus.NOT_FOUND)
         .json({ message: 'Email does not exist' });
     }
-
-    if (
-      await this.emailNotificationService.sendPasswordResetEmail(
-        user.email,
-        user.userId,
-      )
-    )
-      return res.status(HttpStatus.OK).json();
+    if (await this.authService.passwordResetRequestHandler(input))
+      return res.status(HttpStatus.OK).json({message: "Email sent"});
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json();
   }
 
