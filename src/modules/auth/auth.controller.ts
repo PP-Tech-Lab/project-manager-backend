@@ -14,14 +14,12 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
-import { UsersService } from '../../orm-services/users/users.service';
 
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   constructor(
     private authService: AuthService,
-    private userService: UsersService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -49,8 +47,10 @@ export class AuthController {
   async getUserInfo(@Request() request, @Res() res) {
     const username = request.user.username;
     console.log(`[getUserInfo] [GET] Returning request for user ${username}`);
-    const userVerified = await this.userService.isUserVerified(username);
-    return res.status(HttpStatus.OK).json({ verified: userVerified, username });
+    const user = await this.authService.userExists(username)
+    if (user)
+      return res.status(HttpStatus.OK).json({ verified: user.verified, username });
+    return res.status(HttpStatus.NOT_FOUND).json({message: "User not found"})
   }
 
   @Post('register')
@@ -85,7 +85,7 @@ export class AuthController {
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: 'Missing params' });
     return res.status(HttpStatus.OK).json({
-      usernameExists: `${await this.authService.userExists(username)}`,
+      usernameExists: `${!!await this.authService.userExists(username)}`,
     });
   }
 
@@ -138,10 +138,10 @@ export class AuthController {
   // [TODO] FIX THIS CURRENTLY BROKEN
   @Patch('reset-password')
   async updatePassword(
-    @Body() input: { credential: string; token: string; newpassword: string },
+    @Body() input: { credential: string; token: string; newPassword: string },
     @Res() res,
   ) {
-    if (!input.credential || !input.newpassword || !input.token) {
+    if (!input.credential || !input.newPassword || !input.token) {
       this.logger.warn(`[updatePassword] Bad request! Missing fields`);
       return res.status(HttpStatus.BAD_REQUEST).json();
     }
@@ -151,21 +151,19 @@ export class AuthController {
         .status(HttpStatus.FORBIDDEN)
         .json({ message: 'Token expired or nonexistant' });
     }
-    this.logger.debug(
-      `[updatePassword] Password update for user ${input.credential}`,
-    );
-    const user = await this.userService.findUser(input.credential);
+    const user = await this.authService.userExists(input.credential);
     if (!user) {
       this.logger.warn(`[updatePassword] User does not exist`);
       return res
         .status(HttpStatus.NOT_FOUND)
         .json({ message: 'User does not exist' });
     }
-    const newHash = await this.authService.createPasswordHash(
-      input.newpassword,
+    this.logger.debug(
+      `[updatePassword] Password update for user ${input.credential}`,
     );
-    if (await this.userService.updateUserPassword(user.userId, newHash))
-      return res.status(HttpStatus.OK).json();
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json();
+
+    if (await this.authService.passwordResetUpdateHandler(user, input))
+      return res.status(HttpStatus.OK).json({message: "Password updated"});
+    return res.status(HttpStatus.GONE).json({message: "User no longer exists"});
   }
 }

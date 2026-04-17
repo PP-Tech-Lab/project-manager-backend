@@ -7,6 +7,7 @@ import {
   EmailVerifData,
   GeneratedToken,
   PasswordRequestData,
+  PasswordUpdateData,
   SignInData,
   SignUpData,
 } from './auth.type';
@@ -16,6 +17,7 @@ import { VerificationTokenService } from '../../orm-services/verification-tokens
 import { VerificationTokens } from '../../orm-services/verification-tokens/verification-tokens.entity';
 import dayjs from 'dayjs';
 import { createHash, randomBytes } from 'crypto';
+import { User } from '../../orm-services/users/users.types';
 
 @Injectable()
 export class AuthService {
@@ -106,8 +108,8 @@ export class AuthService {
     return false;
   }
 
-  async userExists(username: string): Promise<boolean> {
-    return (await this.usersService.findUser(username)) ? true : false;
+  async userExists(username: string): Promise<User | null> {
+    return await this.usersService.findUser(username);
   }
 
   async emailVerificationHandler(data: EmailVerifData): Promise<boolean> {
@@ -177,7 +179,15 @@ export class AuthService {
   async validatePasswordResetToken(token: string) {}
 
   // [TODO]: Finish this
-  async passwordResetUpdateHandler() {}
+  async passwordResetUpdateHandler(user: User,data: PasswordUpdateData): Promise<boolean> {
+    const newHash = await this.createPasswordHash(
+      data.newPassword,
+    );
+    if (await this.usersService.updateUserPassword(user.email, newHash)) {
+        console.log('Success')
+      return true }
+    return false
+  }
 
 }
 

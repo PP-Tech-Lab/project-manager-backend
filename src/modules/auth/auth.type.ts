@@ -24,3 +24,9 @@ export interface PasswordRequestData {
 }
 
 export type GeneratedToken = { token: string; hash: string };
+
+export interface PasswordUpdateData {
+  credential: string;
+  token: string;
+  newPassword: string;
+}
