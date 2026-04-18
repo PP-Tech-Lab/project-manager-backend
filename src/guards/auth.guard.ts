@@ -18,7 +18,7 @@ export class AuthGuard implements CanActivate {
     const token = authorization?.split(' ')[1];
 
     if (!token) {
-      this.logger.warn('No bearer token provided');
+      this.logger.warn('[canActivate] No bearer token provided');
       throw new UnauthorizedException();
     }
 
@@ -27,10 +27,10 @@ export class AuthGuard implements CanActivate {
       request.user = {
         username: tokenPayload.username,
       };
-      this.logger.verbose(`Token verified for ${tokenPayload.username}`);
+      this.logger.verbose(`[canActivate] Token verified for ${tokenPayload.username}`);
       return true;
     } catch (error) {
-      this.logger.warn('User not Authorized');
+      this.logger.warn('[canActivate] User not Authorized');
       throw new UnauthorizedException();
     }
   }
